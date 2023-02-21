@@ -1,5 +1,4 @@
 class Song
-
   attr_accessor :name, :album, :id
 
   def initialize(name:, album:, id: nil)
@@ -49,4 +48,37 @@ class Song
     song.save
   end
 
+  def self.new_from_db(row)
+    # self.new is equivalent to Song.new
+    self.new(id: row[0], name: row[1], album: row[2])
+  end
+
+  def self.all
+    sql = <<-SQL
+      SELECT * FROM songs
+    SQL
+
+    rows = DB[:conn].execute(sql)
+    songs = []
+
+    rows.each do |row|
+      songs << self.new_from_db(row)
+    end
+
+    songs
+  end
+
+  def self.find_by_name(name)
+    sql = <<-SQL
+      SELECT * FROM songs WHERE name = ?
+    SQL
+
+    row = DB[:conn].execute(sql, name).first
+
+    if row
+      self.new_from_db(row)
+    else
+      nil
+    end
+  end
 end
